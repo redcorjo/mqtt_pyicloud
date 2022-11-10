@@ -27,5 +27,14 @@ OPENHAB_SERVER = http://127.0.0.1:8080
 MQTT_TOPIC = mqtt_icloud
 ```
 
+# Notes of usage
 
-Version: 2022111001
+If icloud credentials are expired, we can be alerted by receiving the message at either below three approaches:
+
+1. logger at console
+2. openhab item icloudauth
+3. mqtt topic icloudauth 
+
+By that we can plug the alerting to other automations at our convenience. The big challenge of using icloud, it is the requirement of having a 2factor authentication initilized first.
+
+Version: 2022111002
