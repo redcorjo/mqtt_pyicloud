@@ -10,7 +10,7 @@ This project is a wrapper to obtain icloud data to feed openhab and mqtt. This c
 
 After installing all above components, at the same OS account to run this python program, first to execute at command line:
 
-icloud --username <youriclouduser>
+icloud --username \<youriclouduser>
 
 first time the python program mqtt_icloud.py is executed, it will create a template of mqtt_icloud.ini configuration file. That configuration file is to be created at the same folder.
 
