@@ -63,12 +63,13 @@ def get2sa(api):
 def publish_openhab(item_name,payload):
     logger.info(f"Publish openhab item={item_name} payload={payload}")
     openhab_server = getConfig("OPENHAB_SERVER")
-    response = requests.put(openhab_server + '/rest/items/'+item_name+'/state', str(payload), headers={'Content-type': 'text/plain'})    
-    if response.status_code == 404:
-        logger.warning(f"Does not exists {item_name} at openhab instane")
-    else:
-        logger.debug(f"Published event for item {item_name}")
-    pass
+    if openhab_server != None:
+        response = requests.put(openhab_server + '/rest/items/'+item_name+'/state', str(payload), headers={'Content-type': 'text/plain'})    
+        if response.status_code == 404:
+            logger.warning(f"Does not exists {item_name} at openhab instane")
+        else:
+            logger.debug(f"Published event for item {item_name}")
+    return True
 
 
 def on_publish_mqtt(client,userdata,result): 
@@ -76,13 +77,15 @@ def on_publish_mqtt(client,userdata,result):
     pass
 
 def publish_mqtt(item_name, payload):
-    logger.info(f"Publish mqtt item={item_name} payload={payload}")
-    client1=paho.Client("mqtt_icloud")
-    client1.on_publish = on_publish_mqtt
     mqtt_server = getConfig("MQTT_SERVER")
     mqtt_topic = getConfig("MQTT_TOPIC")
-    client1.connect(mqtt_server)
-    ret= client1.publish(f"{mqtt_topic}/{item_name}/state",str(payload)) 
+    if mqtt_server != None:
+        logger.info(f"Publish mqtt item={item_name} payload={payload}")
+        client1=paho.Client("mqtt_icloud")
+        client1.on_publish = on_publish_mqtt
+        client1.connect(mqtt_server)
+        client1.publish(f"{mqtt_topic}/{item_name}/state",str(payload)) 
+    return True
 
 def getConfig(key):
     config_file = __file__.replace(".py", ".ini")
@@ -96,16 +99,28 @@ def getConfig(key):
             value = os.environ.get(key)
     else:
         value = os.environ.get(key)
-    if value == None and key == "MQTT_SERVER":
-        value = "127.0.0.1"
-    if value == None and key == "OPENHAB_SERVER":
-        value = "http://127.0.0.1:8080"
+        logger.info(f"Creating initial version of the configuration file {config_file}")
+        username = input("Enter the icloud username: ")
+        password = input("Enter the icloud password: ")
+        TEMPLATE = f"""
+[settings]
+ICLOUD_USERNAME = {username}
+ICLOUD_PASSWORD = {password}
+#MQTT_SERVER = 127.0.0.1
+#OPENHAB_SERVER = http://127.0.0.1:8080
+#MQTT_TOPIC = mqtt_icloud
+        """
+        with open(config_file, "w") as myfile:
+            myfile.writelines(TEMPLATE)
+    # if value == None and key == "MQTT_SERVER":
+    #     value = "127.0.0.1"
+    # if value == None and key == "OPENHAB_SERVER":
+    #     value = "http://127.0.0.1:8080"
     if value == None and key == "MQTT_TOPIC":
         value = "mqtt_icloud"
     return value
 
 async def icloud():
-    #return None
     username = getConfig("ICLOUD_USERNAME")
     password = getConfig("ICLOUD_PASSWORD")
     api = PyiCloudService(username, password)
