@@ -1,0 +1,4 @@
+tmp/
+.vscode/
+src/mqtt_icloud.ini
+*.code-workspace
