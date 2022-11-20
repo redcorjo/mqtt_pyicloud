@@ -17,48 +17,54 @@ def get2fa(api):
     logger.warning("Required 2Factor auth")
     print("Two-factor authentication required.")
     publish_mqtt("icloudauth", "required_2factor")
-    sys.exit(1)
-    # code = input("Enter the code you received of one of your approved devices: ")
-    # result = api.validate_2fa_code(code)
-    # print("Code validation result: %s" % result)
+    my_interactive_session = sys.stdout.fileno()
+    logger.warning(f"my_interactive_session={my_interactive_session}")
+    if not my_interactive_session:
+        sys.exit(1)
+    code = input("Enter the code you received of one of your approved devices: ")
+    result = api.validate_2fa_code(code)
+    print("Code validation result: %s" % result)
 
-    # if not result:
-    #     print("Failed to verify security code")
-    #     sys.exit(1)
+    if not result:
+        print("Failed to verify security code")
+        sys.exit(1)
 
-    # if not api.is_trusted_session:
-    #     print("Session is not trusted. Requesting trust...")
-    #     result = api.trust_session()
-    #     print("Session trust result %s" % result)
+    if not api.is_trusted_session:
+        print("Session is not trusted. Requesting trust...")
+        result = api.trust_session()
+        print("Session trust result %s" % result)
 
-    #     if not result:
-    #         print("Failed to request trust. You will likely be prompted for the code again in the coming weeks")
+        if not result:
+            print("Failed to request trust. You will likely be prompted for the code again in the coming weeks")
 
 
 def get2sa(api):
     logger.warning("Required 2SAFactor auth")
     publish_mqtt("icloudauth", "required_2safactor")
-    sys.exit(1)
-    # import click
-    # print("Two-step authentication required. Your trusted devices are:")
+    my_interactive_session = sys.stdout.fileno()
+    logger.warning(f"my_interactive_session={my_interactive_session}")
+    if not my_interactive_session:
+        sys.exit(1)
+    import click
+    print("Two-step authentication required. Your trusted devices are:")
 
-    # devices = api.trusted_devices
-    # for i, device in enumerate(devices):
-    #     print(
-    #         "  %s: %s" % (i, device.get('deviceName',
-    #         "SMS to %s" % device.get('phoneNumber')))
-    #     )
+    devices = api.trusted_devices
+    for i, device in enumerate(devices):
+        print(
+            "  %s: %s" % (i, device.get('deviceName',
+            "SMS to %s" % device.get('phoneNumber')))
+        )
 
-    # device = click.prompt('Which device would you like to use?', default=0)
-    # device = devices[device]
-    # if not api.send_verification_code(device):
-    #     print("Failed to send verification code")
-    #     sys.exit(1)
+    device = click.prompt('Which device would you like to use?', default=0)
+    device = devices[device]
+    if not api.send_verification_code(device):
+        print("Failed to send verification code")
+        sys.exit(1)
 
-    # code = click.prompt('Please enter validation code')
-    # if not api.validate_verification_code(device, code):
-    #     print("Failed to verify verification code")
-    #     sys.exit(1)
+    code = click.prompt('Please enter validation code')
+    if not api.validate_verification_code(device, code):
+        print("Failed to verify verification code")
+        sys.exit(1)
 
 def publish_openhab(item_name,payload):
     logger.info(f"Publish openhab item={item_name} payload={payload}")
@@ -87,14 +93,14 @@ def publish_mqtt(item_name, payload):
         client1.publish(f"{mqtt_topic}/{item_name}/state",str(payload)) 
     return True
 
-def getConfig(key):
+def getConfig(key, section="settings"):
     config_file = __file__.replace(".py", ".ini")
     value = None
     if os.path.exists(config_file):
         config = configparser.ConfigParser()
         config.read(config_file)
-        if "settings" in config and key in config["settings"]:
-            value = config["settings"][key]
+        if section in config and key in config[section]:
+            value = config[section][key]
         else:
             value = os.environ.get(key)
     else:
@@ -106,9 +112,11 @@ def getConfig(key):
 [settings]
 ICLOUD_USERNAME = {username}
 ICLOUD_PASSWORD = {password}
+[mqtt]
 #MQTT_SERVER = 127.0.0.1
-#OPENHAB_SERVER = http://127.0.0.1:8080
 #MQTT_TOPIC = mqtt_icloud
+[openhab]
+#OPENHAB_SERVER = http://127.0.0.1:8080
         """
         with open(config_file, "w") as myfile:
             myfile.writelines(TEMPLATE)
@@ -120,9 +128,13 @@ ICLOUD_PASSWORD = {password}
         value = "mqtt_icloud"
     return value
 
-async def icloud():
+#async def icloud():
+def main():
     username = getConfig("ICLOUD_USERNAME")
     password = getConfig("ICLOUD_PASSWORD")
+    if username == None or password == None:
+        logger.warning("Missing credentials. Exit from execute")
+        sys.exit(-1)
     api = PyiCloudService(username, password)
     if api.requires_2fa:
         logger.warning("Required 2Factor auth")
@@ -148,4 +160,8 @@ async def icloud():
                 logger.warning(f"Exception {device_name} {device_id} " + str(e))
             publish_mqtt(f"{item_name}_status", device_status)
         publish_mqtt("icloudauth", "ok")
-asyncio.run(icloud())
+#asyncio.run(icloud())
+
+
+if __name__ == "__main__":
+    main()
