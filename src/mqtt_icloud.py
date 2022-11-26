@@ -134,8 +134,7 @@ ICLOUD_PASSWORD = {password}
         with open(config_file, "w") as myfile:
             config[section][key] = value
             config.write(myfile)
-    if value != None and value.startswith("(ENC)"):
-        value = decode_value(value)
+    value = decode_value(value)
     return value
 
 def encode_value(value):
