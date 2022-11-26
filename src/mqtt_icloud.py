@@ -9,6 +9,7 @@ import os
 import logging
 import paho.mqtt.client as paho
 import configparser
+import base64
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -67,9 +68,9 @@ def get2sa(api):
         sys.exit(1)
 
 def publish_openhab(item_name,payload):
-    logger.info(f"Publish openhab item={item_name} payload={payload}")
-    openhab_server = getConfig("OPENHAB_SERVER")
+    openhab_server = getConfig("OPENHAB_SERVER", section="openhab")
     if openhab_server != None:
+        logger.info(f"Publish openhab item={item_name} payload={payload}")
         response = requests.put(openhab_server + '/rest/items/'+item_name+'/state', str(payload), headers={'Content-type': 'text/plain'})    
         if response.status_code == 404:
             logger.warning(f"Does not exists {item_name} at openhab instane")
@@ -83,8 +84,8 @@ def on_publish_mqtt(client,userdata,result):
     pass
 
 def publish_mqtt(item_name, payload):
-    mqtt_server = getConfig("MQTT_SERVER")
-    mqtt_topic = getConfig("MQTT_TOPIC")
+    mqtt_server = getConfig("MQTT_SERVER", section="mqtt")
+    mqtt_topic = getConfig("MQTT_TOPIC", section="mnqtt")
     if mqtt_server != None:
         logger.info(f"Publish mqtt item={item_name} payload={payload}")
         client1=paho.Client("mqtt_icloud")
@@ -97,7 +98,7 @@ def getConfig(key, section="settings"):
     config_file = __file__.replace(".py", ".ini")
     value = None
     if os.path.exists(config_file):
-        config = configparser.ConfigParser()
+        config = configparser.ConfigParser(allow_no_value=True)
         config.read(config_file)
         if section in config and key in config[section]:
             value = config[section][key]
@@ -108,15 +109,16 @@ def getConfig(key, section="settings"):
         logger.info(f"Creating initial version of the configuration file {config_file}")
         username = input("Enter the icloud username: ")
         password = input("Enter the icloud password: ")
+        password = encode_value(password)
         TEMPLATE = f"""
 [settings]
 ICLOUD_USERNAME = {username}
 ICLOUD_PASSWORD = {password}
 [mqtt]
-#MQTT_SERVER = 127.0.0.1
-#MQTT_TOPIC = mqtt_icloud
+;MQTT_SERVER = 127.0.0.1
+;MQTT_TOPIC = mqtt_icloud
 [openhab]
-#OPENHAB_SERVER = http://127.0.0.1:8080
+;OPENHAB_SERVER = http://127.0.0.1:8080
         """
         with open(config_file, "w") as myfile:
             myfile.writelines(TEMPLATE)
@@ -126,12 +128,36 @@ ICLOUD_PASSWORD = {password}
     #     value = "http://127.0.0.1:8080"
     if value == None and key == "MQTT_TOPIC":
         value = "mqtt_icloud"
+    if "password" in key.lower() and value != None and not value.startswith("(ENC)"):
+        logger.info(f"Masquerade value for key {key}")
+        value = encode_value(value)
+        with open(config_file, "w") as myfile:
+            config[section][key] = value
+            config.write(myfile)
+    if value != None and value.startswith("(ENC)"):
+        value = decode_value(value)
     return value
+
+def encode_value(value):
+    if value != None and not value.startswith("(ENC)"):
+        my_value = base64.b64encode(value.encode()).decode()
+        encoded_string = f"(ENC){my_value}"
+    else:
+        encoedd_string = value
+    return encoded_string 
+
+def decode_value(value):
+    if value != None and value.startswith("(ENC)"):
+        value = value.replace("(ENC)", "")
+        decoded_string = base64.b64decode(value.encode()).decode()
+    else:
+        decoded_string = value
+    return decoded_string
 
 #async def icloud():
 def main():
-    username = getConfig("ICLOUD_USERNAME")
-    password = getConfig("ICLOUD_PASSWORD")
+    username = getConfig("ICLOUD_USERNAME", section="settings")
+    password = getConfig("ICLOUD_PASSWORD", section="settings")
     if username == None or password == None:
         logger.warning("Missing credentials. Exit from execute")
         sys.exit(-1)
