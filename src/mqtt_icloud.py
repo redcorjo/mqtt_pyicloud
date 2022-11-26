@@ -151,7 +151,7 @@ def decode_value(value):
         decoded_string = value
     return decoded_string
 
-def main():
+def process_iteration():
     username = getConfig("ICLOUD_USERNAME", section="settings")
     password = getConfig("ICLOUD_PASSWORD", section="settings")
     if username == None or password == None:
@@ -182,6 +182,9 @@ def main():
                 logger.warning(f"Exception {device_name} {device_id} " + str(e))
             publish_mqtt(f"{item_name}_status", device_status)
         publish_mqtt("icloudauth", "ok")
+
+def main():
+    process_iteration()
 
 if __name__ == "__main__":
     main()
