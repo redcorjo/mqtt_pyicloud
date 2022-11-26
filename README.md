@@ -22,9 +22,11 @@ The script will loop for every device reported at the own icloud profile, and wi
 [settings]
 ICLOUD_USERNAME = username@icloud.com
 ICLOUD_PASSWORD = mypassword
+[mqtt]
 MQTT_SERVER = 127.0.0.1
-OPENHAB_SERVER = http://127.0.0.1:8080
 MQTT_TOPIC = mqtt_icloud
+[openhab]
+OPENHAB_SERVER = http://127.0.0.1:8080
 ```
 
 # Notes of usage
@@ -37,4 +39,4 @@ If icloud credentials are expired, we can be alerted by receiving the message at
 
 By that we can plug the alerting to other automations at our convenience. The big challenge of using icloud, it is the requirement of having a 2factor authentication initilized first.
 
-Version: 2022111002
+Version: 2022112600
