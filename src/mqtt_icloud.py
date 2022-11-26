@@ -1,8 +1,7 @@
 #!/usr/bin/python3
 
 from pyicloud import PyiCloudService
-import asyncio
-import sys, getopt
+import sys
 import requests
 import json
 import os
@@ -122,10 +121,6 @@ ICLOUD_PASSWORD = {password}
         """
         with open(config_file, "w") as myfile:
             myfile.writelines(TEMPLATE)
-    # if value == None and key == "MQTT_SERVER":
-    #     value = "127.0.0.1"
-    # if value == None and key == "OPENHAB_SERVER":
-    #     value = "http://127.0.0.1:8080"
     if value == None and key == "MQTT_TOPIC":
         value = "mqtt_icloud"
     if "password" in key.lower() and value != None and not value.startswith("(ENC)"):
@@ -153,7 +148,6 @@ def decode_value(value):
         decoded_string = value
     return decoded_string
 
-#async def icloud():
 def main():
     username = getConfig("ICLOUD_USERNAME", section="settings")
     password = getConfig("ICLOUD_PASSWORD", section="settings")
@@ -185,8 +179,6 @@ def main():
                 logger.warning(f"Exception {device_name} {device_id} " + str(e))
             publish_mqtt(f"{item_name}_status", device_status)
         publish_mqtt("icloudauth", "ok")
-#asyncio.run(icloud())
-
 
 if __name__ == "__main__":
     main()
