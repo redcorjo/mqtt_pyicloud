@@ -9,6 +9,7 @@ import logging
 import paho.mqtt.client as paho
 import configparser
 import base64
+import socket
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -134,6 +135,7 @@ ICLOUD_PASSWORD = {password}
 
 def encode_value(value):
     if value != None and not value.startswith("(ENC)"):
+        master_key = socket.gethostname()
         my_value = base64.b64encode(value.encode()).decode()
         encoded_string = f"(ENC){my_value}"
     else:
@@ -142,6 +144,7 @@ def encode_value(value):
 
 def decode_value(value):
     if value != None and value.startswith("(ENC)"):
+        master_key = socket.gethostname()
         value = value.replace("(ENC)", "")
         decoded_string = base64.b64decode(value.encode()).decode()
     else:
