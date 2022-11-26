@@ -39,4 +39,6 @@ If icloud credentials are expired, we can be alerted by receiving the message at
 
 By that we can plug the alerting to other automations at our convenience. The big challenge of using icloud, it is the requirement of having a 2factor authentication initilized first.
 
+The password added at the config file, if it is added on clear, the same script will masquerade and upodate it at config file
+
 Version: 2022112600
