@@ -119,6 +119,8 @@ ICLOUD_PASSWORD = {password}
 ;MQTT_TOPIC = mqtt_icloud
 [openhab]
 ;OPENHAB_SERVER = http://127.0.0.1:8080
+[alias]
+;name1 = alias
         """
         with open(config_file, "w") as myfile:
             myfile.writelines(TEMPLATE)
@@ -170,8 +172,12 @@ def process_iteration():
             device_data = device.data
             device_id = device_data["id"]
             device_name = device_data["name"]
+            device_alias = getConfig(device_name, section="alias")
             device_display_name = device_data["deviceDisplayName"]
-            item_name = device_name + device_display_name
+            if device_alias != None:
+                item_name = device_alias + device_display_name
+            else:
+                item_name = device_name + device_display_name
             item_name = item_name.replace(" ","").replace("’","")
             device_status = device.status()
             try:

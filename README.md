@@ -27,6 +27,8 @@ MQTT_SERVER = 127.0.0.1
 MQTT_TOPIC = mqtt_icloud
 [openhab]
 OPENHAB_SERVER = http://127.0.0.1:8080
+[alias]
+name1 = alias1
 ```
 
 # Notes of usage
@@ -41,4 +43,4 @@ By that we can plug the alerting to other automations at our convenience. The bi
 
 The password added at the config file, if it is added on clear, the same script will masquerade and upodate it at config file
 
-Version: 2022112600
+Version: 2022112700
