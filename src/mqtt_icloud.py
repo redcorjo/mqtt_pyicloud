@@ -10,6 +10,7 @@ import paho.mqtt.client as paho
 import configparser
 import base64
 import socket
+import time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,9 +21,23 @@ def get2fa(api):
     publish_mqtt("icloudauth", "required_2factor")
     my_interactive_session = sys.stdout.fileno()
     logger.warning(f"my_interactive_session={my_interactive_session}")
+    
+    code = None
     if not my_interactive_session:
+        token_file = "/tmp/icloud.txt"
+        for iteration in range(20):
+            time.sleep(iteration*2)
+            if os.path.exists(token_file):
+                with open(token_file) as my_file:
+                    logger.info(f"Readed token file {token_file}")
+                    code = my_file.readline().replace("\n","")
+                    os.remove(token_file)
+                    logger.info(f"Deleted token file {token_file}")
+                    break
+    else:
+        code = input("Enter the code you received of one of your approved devices: ")
+    if code == None:
         sys.exit(1)
-    code = input("Enter the code you received of one of your approved devices: ")
     result = api.validate_2fa_code(code)
     print("Code validation result: %s" % result)
 
@@ -183,10 +198,18 @@ def process_iteration():
             try:
                 device_location = device.location()
                 device_location_gps = str(device_location['latitude']) + "," + str(device_location['longitude'])
-                publish_openhab(f"{item_name}_Location", device_location_gps)
+                item_location = f"{item_name}_Location"
+                item_alias = getConfig(item_location, section="alias")
+                if item_alias != None:
+                    item_location = item_alias
+                publish_openhab(item_location, device_location_gps)
             except Exception as e:
                 logger.warning(f"Exception {device_name} {device_id} " + str(e))
-            publish_mqtt(f"{item_name}_status", device_status)
+            item_status = f"{item_name}_status"
+            item_alias = getConfig(item_status, section="alias")
+            if item_alias != None:
+                item_status = item_alias
+            publish_mqtt(item_status, device_status)
         publish_mqtt("icloudauth", "ok")
 
 def main():
