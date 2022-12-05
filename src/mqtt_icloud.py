@@ -14,6 +14,8 @@ import time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+global icloud_token
+icloud_token = None
 
 def get2fa(api):
     logger.warning("Required 2Factor auth")
@@ -23,10 +25,12 @@ def get2fa(api):
     logger.warning(f"my_interactive_session={my_interactive_session}")
     
     code = None
-    if not my_interactive_session:
-        token_file = "/tmp/icloud.txt"
-        for iteration in range(20):
-            time.sleep(iteration*2)
+    if my_interactive_session:
+        subscribe_mqtt("icloud_token")
+        token_file = "/tmp/icloud_token.txt"
+        for iteration in range(300):
+            time.sleep(1)
+            global icloud_token
             if os.path.exists(token_file):
                 with open(token_file) as my_file:
                     logger.info(f"Readed token file {token_file}")
@@ -34,6 +38,11 @@ def get2fa(api):
                     os.remove(token_file)
                     logger.info(f"Deleted token file {token_file}")
                     break
+            elif icloud_token != None:
+                logger.info("Obtained icloud token from variable")
+                code = icloud_token
+                icloud_token = None
+                break
     else:
         code = input("Enter the code you received of one of your approved devices: ")
     if code == None:
@@ -97,6 +106,24 @@ def publish_openhab(item_name,payload):
 def on_publish_mqtt(client,userdata,result): 
     logger.debug("data published \n")
     pass
+
+def on_message_mqtt(client,userdata,result): 
+    logger.debug("data published \n")
+    global icloud_token
+    icloud_token = result.payload.decode()
+    pass
+
+def subscribe_mqtt(item_name):
+    mqtt_server = getConfig("MQTT_SERVER", section="mqtt")
+    mqtt_topic = getConfig("MQTT_TOPIC", section="mnqtt")
+    if mqtt_server != None:
+        logger.info(f"Subscribe mqtt item={item_name}")
+        client1=paho.Client("mqtt_icloud")
+        client1.on_message = on_message_mqtt
+        client1.connect(mqtt_server)
+        client1.subscribe(f"{mqtt_topic}/{item_name}/state", qos=0) 
+        client1.loop_start() 
+    return True
 
 def publish_mqtt(item_name, payload):
     mqtt_server = getConfig("MQTT_SERVER", section="mqtt")
