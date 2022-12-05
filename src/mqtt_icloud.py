@@ -12,8 +12,28 @@ import base64
 import socket
 import time
 
+LOGLEVEL = os.getenv("DEBUG", "INFO").upper()
+if LOGLEVEL == "DEBUG":
+    level = logging.DEBUG
+elif LOGLEVEL == "INFO":
+    level = logging.INFO
+elif LOGLEVEL == "WARNING" or LOGLEVEL == "WARN":
+    level = logging.WARNING
+elif LOGLEVEL == "ERROR":
+    level = logging.ERROR
+else:
+    level = logging.INFO
+
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "prod").lower()
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+stream_handler = logging.StreamHandler()
+logging_formatter = logging.Formatter(
+    '%(levelname)-8s [%(filename)s:%(lineno)d] (' + ENVIRONMENT + ') - %(message)s')
+stream_handler.setFormatter(logging_formatter)
+logger.addHandler(stream_handler)
+
 global icloud_token
 icloud_token = None
 
