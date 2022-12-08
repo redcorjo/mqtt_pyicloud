@@ -22,6 +22,7 @@ The script will loop for every device reported at the own icloud profile, and wi
 [settings]
 ICLOUD_USERNAME = username@icloud.com
 ICLOUD_PASSWORD = mypassword
+frequency = 60
 [mqtt]
 MQTT_SERVER = 127.0.0.1
 MQTT_TOPIC = mqtt_icloud
@@ -29,6 +30,9 @@ MQTT_TOPIC = mqtt_icloud
 OPENHAB_SERVER = http://127.0.0.1:8080
 [alias]
 name1 = alias1
+[web]
+hostname = 0.0.0.0
+port = 8000
 ```
 
 # Notes of usage
@@ -43,4 +47,4 @@ By that we can plug the alerting to other automations at our convenience. The bi
 
 The password added at the config file, if it is added on clear, the same script will masquerade and upodate it at config file
 
-Version: 2022112700
+Version: 2022120800
