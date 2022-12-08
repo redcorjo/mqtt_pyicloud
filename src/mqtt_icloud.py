@@ -155,8 +155,12 @@ def publish_mqtt(item_name, payload):
         logger.info(f"Publish mqtt item={item_name} payload={payload}")
         client1=paho.Client("mqtt_icloud")
         client1.on_publish = on_publish_mqtt
-        client1.connect(mqtt_server)
-        client1.publish(f"{mqtt_topic}/{item_name}/state",str(payload)) 
+        try:
+            client1.connect(mqtt_server)
+            client1.publish(f"{mqtt_topic}/{item_name}/state",str(payload)) 
+        except Exception as e:
+            logger.warning("Exception " + str(e))
+            return False
     return True
 
 def getConfig(key, section="settings"):
