@@ -55,7 +55,10 @@ def get2fa(api):
                 with open(token_file) as my_file:
                     logger.info(f"Readed token file {token_file}")
                     code = my_file.readline().replace("\n","")
-                    os.remove(token_file)
+                    try:
+                        os.remove(token_file)
+                    except Exception as e:
+                        logger.error("Problem deleting lock file " + token_file + " .Exception " + str(e))
                     logger.info(f"Deleted token file {token_file}")
                     break
             elif icloud_token != None:
