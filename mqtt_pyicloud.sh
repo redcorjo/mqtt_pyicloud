@@ -1,5 +1,6 @@
 #!/bin/bash
 
+SERVICE=mqtt_pyicloud
 MYDIR=$(pwd)
 APPDIR=$(dirname $0)
 cd ${APPDIR}
@@ -14,7 +15,7 @@ else
     . .venv/bin/activate
 fi
 
-( cd src ; ../.venv/bin/python3 netatmo.py --daemon )
+( cd src ; ../.venv/bin/python3 app.py --daemon )
 
 cd ${MYDIR}
 
