@@ -41,6 +41,7 @@ class IcloudLibrary():
     
     frequency = 60
     scheduler = None
+    config_dir = os.path.dirname(os.path.abspath(__file__))
     
     def __init__(self):
         logger.info("Initialized class")
@@ -250,7 +251,11 @@ class IcloudLibrary():
         if username == None or password == None:
             logger.warning("Missing credentials. Exit from execute")
             sys.exit(-1)
-        api = PyiCloudService(username, password)
+        cookie_directory = self.config_dir + "/tmp/cookies"
+        if not os.path.exists(cookie_directory):
+            logger.info(f"Creating cookies directory {cookie_directory}")
+            os.makedirs(cookie_directory)
+        api = PyiCloudService(username, password, cookie_directory=cookie_directory)
         if api.requires_2fa:
             logger.warning("Required 2Factor auth")
             self.get2fa(api)
