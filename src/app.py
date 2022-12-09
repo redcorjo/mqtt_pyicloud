@@ -43,6 +43,11 @@ async def post_refresh_frequency(frequency: int):
     payload = icloud_task.setFrequency(frequency)   
     return {"payload": payload}
 
+@app.get("/")
+async def redirect_docs():
+    response = RedirectResponse(url='/docs')
+    return response
+
 def launch_fastapp(port=8000, host="0.0.0.0", settings=None):
     if settings != None:
         app.state.config = settings
