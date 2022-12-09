@@ -2,7 +2,7 @@
 
 create_service()
 {
-cat <<EOF>/tmp/netatmo.service
+cat <<EOF>/tmp/${SERVICE}.service
 [Unit]
 Description=${SERVICE}
 After=multi-user.target
