@@ -27,7 +27,7 @@ WORKDIR=$(cd ${APPDIR}; cd ../.. ; pwd)
 MYUSER=$(whoami)
 echo "Create service file ${SERVICE}.service"
 create_service
-sudo mv /tmp/netatmo.service /lib/systemd/system/${SERVICE}.service
+sudo mv /tmp/${SERVICE}.service /lib/systemd/system/${SERVICE}.service
 echo "Reload daemon ${SERVICE}"
 sudo systemctl daemon-reload
 echo "Enable daemon ${SERVICE}"
