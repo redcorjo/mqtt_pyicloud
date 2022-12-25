@@ -211,7 +211,7 @@ def encode_value(value):
         my_value = base64.b64encode(value.encode()).decode()
         encoded_string = f"(ENC){my_value}"
     else:
-        encoedd_string = value
+        encoded_string = value
     return encoded_string 
 
 def decode_value(value):
