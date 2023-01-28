@@ -42,6 +42,7 @@ class IcloudLibrary():
     frequency = 60
     scheduler = None
     config_dir = os.path.dirname(os.path.abspath(__file__))
+    icloud_token = None
     
     def __init__(self):
         logger.info("Initialized class")
@@ -76,6 +77,11 @@ class IcloudLibrary():
                     logger.info("Obtained icloud token from variable")
                     code = icloud_token
                     icloud_token = None
+                    break
+                elif self.icloud_token != None:
+                    logger.info("Obtained icloud token from class variable")
+                    code = self.icloud_token
+                    self.icloud_token = None
                     break
         else:
             code = input("Enter the code you received of one of your approved devices: ")
@@ -146,6 +152,10 @@ class IcloudLibrary():
         global icloud_token
         icloud_token = result.payload.decode()
         pass
+    
+    def set_icloud_token(self, icloud_token):
+        logger.info(f"Received new icloud token {icloud_token}")
+        self.icloud_token = icloud_token
 
     def subscribe_mqtt(self, item_name):
         mqtt_server = self.getConfig("MQTT_SERVER", section="mqtt")

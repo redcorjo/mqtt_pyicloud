@@ -37,14 +37,15 @@ port = 8000
 
 # Notes of usage
 
-If icloud credentials are expired, we can be alerted by receiving the message at either below three approaches:
+If icloud credentials are expired, we can be alerted by receiving the message at either below four approaches:
 
 1. logger at console
 2. openhab item icloudauth
 3. mqtt topic icloudauth 
+4. post token value at /icloud_token endpoint of the web sever from mqtt_icloud instance
 
 By that we can plug the alerting to other automations at our convenience. The big challenge of using icloud, it is the requirement of having a 2factor authentication initilized first.
 
 The password added at the config file, if it is added on clear, the same script will masquerade and upodate it at config file
 
-Version: 2022120800
+Version: 2023012800

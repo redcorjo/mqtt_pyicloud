@@ -29,7 +29,22 @@ logging_formatter = logging.Formatter(
 stream_handler.setFormatter(logging_formatter)
 logger.addHandler(stream_handler)
 
-app = FastAPI()
+fastapi_parameters = {
+    "title": "mqtt_pyicloud",
+    "description": "Broker APIs to interact with Apple Icloud and mqtt endpoints",
+    "version": "0.2.1",
+    "contact": {
+        "name": "Jordi Redondo",
+        "email": "jordipromotions@gmail.com",
+        "url": "https://github.com/redcorjo/mqtt_pyicloud"
+    },
+    "license_info": {
+        "name": "GNU GPLv3",
+        "url": "https://raw.githubusercontent.com/redcorjo/mqtt_pyicloud/master/LICENSE.md"
+    }
+}
+
+app = FastAPI(**fastapi_parameters)
 icloud_task = IcloudLibrary()
 
 
@@ -41,6 +56,11 @@ async def get_data():
 @app.post("/frequency")
 async def post_refresh_frequency(frequency: int):
     payload = icloud_task.setFrequency(frequency)   
+    return {"payload": payload}
+
+@app.post("/icloud_token")
+async def post_set_icloud_token(icloud_token: str):
+    payload = icloud_task.set_icloud_token(icloud_token)
     return {"payload": payload}
 
 @app.get("/")
