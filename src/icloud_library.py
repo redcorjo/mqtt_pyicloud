@@ -11,6 +11,7 @@ import socket
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 import datetime
+import glob
 
 LOGLEVEL = os.getenv("DEBUG", "INFO").upper()
 if LOGLEVEL == "DEBUG":
@@ -51,6 +52,11 @@ class IcloudLibrary():
         
     def get2fa(self, api):
         logger.warning("Required 2Factor auth")
+        cookie_directory = self.config_dir + "/tmp/cookies"
+        files_to_delete = glob.glob(f"{cookie_directory}/*")
+        for my_file in files_to_delete:
+            if os.path.isfile(my_file):
+                os.remove(my_file)
         print("Two-factor authentication required.")
         self.publish_mqtt("icloudauth", "required_2factor")
         my_interactive_session = sys.stdout.fileno()
