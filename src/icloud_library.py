@@ -49,14 +49,18 @@ class IcloudLibrary():
         logger.info("Initialized class")
         self.freqency = self.getConfig("frequency", section="settings")
         self.schedule_daemon()
-        
-    def get2fa(self, api):
-        logger.warning("Required 2Factor auth")
+
+    def _clean_cookie_files(self):
         cookie_directory = self.config_dir + "/tmp/cookies"
         files_to_delete = glob.glob(f"{cookie_directory}/*")
         for my_file in files_to_delete:
             if os.path.isfile(my_file):
-                os.remove(my_file)
+                os.remove(my_file)     
+                logger.info(f"Deleted cookie file {my_file}")   
+        
+    def get2fa(self, api):
+        logger.warning("Required 2Factor auth")
+        self._clean_cookie_files()
         print("Two-factor authentication required.")
         self.publish_mqtt("icloudauth", "required_2factor")
         my_interactive_session = sys.stdout.fileno()
@@ -274,6 +278,7 @@ class IcloudLibrary():
         api = PyiCloudService(username, password, cookie_directory=cookie_directory)
         if api.requires_2fa:
             logger.warning("Required 2Factor auth")
+            self._clean_cookie_files()
             self.get2fa(api)
         elif api.requires_2sa:
             logger.warning("Required 2SA auth")
