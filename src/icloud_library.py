@@ -12,6 +12,7 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 import datetime
 import glob
+import re
 
 LOGLEVEL = os.getenv("DEBUG", "INFO").upper()
 if LOGLEVEL == "DEBUG":
@@ -264,7 +265,29 @@ class IcloudLibrary():
             decoded_string = value
         return decoded_string
 
+    def check_cookies_expiration(self):
+        offset_time = 3600 * 24 * 5
+        cookie_directory = self.config_dir + "/tmp/cookies"
+        re_pattern = ".+expires=\"([^\"]+)\".*"
+        if os.path.exists(cookie_directory):
+            for item in os.listdir(cookie_directory):
+                if os.path.isfile(f"{cookie_directory}/{item}"):
+                    with open(f"{cookie_directory}/{item}") as my_file:
+                        for line in my_file:
+                            if line.startswith("Set-Cookie") and "expires=" in line:
+                                match_regex = re.search(re_pattern, line)
+                                if match_regex:
+                                    time_result = match_regex.group(1)
+                                    current_time = datetime.datetime.now()
+                                    epoch_time = datetime.datetime.strptime(time_result, "%Y-%m-%d %H:%M:%SZ")
+                                    delta_time = (epoch_time - current_time).total_seconds()
+                                    if delta_time < offset_time:
+                                        logger.warning(f"{line} expiration={time_result}")
+        else:
+            logger.warning(f"Missing temporal folder {cookie_directory}")
+
     def process_iteration(self):
+        self.check_cookies_expiration()
         all_results = {"payload": []}
         username = self.getConfig("ICLOUD_USERNAME", section="settings")
         password = self.getConfig("ICLOUD_PASSWORD", section="settings")
