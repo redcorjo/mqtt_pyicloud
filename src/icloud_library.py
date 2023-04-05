@@ -265,10 +265,13 @@ class IcloudLibrary():
             decoded_string = value
         return decoded_string
 
-    def check_cookies_expiration(self):
+    def check_cookies_expiration(self, send_alert=True):
+        expired_cookies = False
         offset_time = 3600 * 24 * 5
         cookie_directory = self.config_dir + "/tmp/cookies"
         re_pattern = ".+expires=\"([^\"]+)\".*"
+        all_expirations = []
+        oldest_cookie = None
         if os.path.exists(cookie_directory):
             for item in os.listdir(cookie_directory):
                 if os.path.isfile(f"{cookie_directory}/{item}"):
@@ -280,14 +283,27 @@ class IcloudLibrary():
                                     time_result = match_regex.group(1)
                                     current_time = datetime.datetime.now()
                                     epoch_time = datetime.datetime.strptime(time_result, "%Y-%m-%d %H:%M:%SZ")
+                                    if oldest_cookie == None or oldest_cookie > epoch_time:
+                                        oldest_cookie = epoch_time
                                     delta_time = (epoch_time - current_time).total_seconds()
+                                    epoch_data = {
+                                        "time_result": time_result,
+                                        "delta_time_epoch": delta_time
+                                    }
+                                    all_expirations.append(epoch_data)
                                     if delta_time < offset_time:
                                         logger.warning(f"{line} expiration={time_result}")
+                                        expired_cookies = True
+                                        if send_alert == True:
+                                            logger.info(f"Sending alert for line={line}")
         else:
             logger.warning(f"Missing temporal folder {cookie_directory}")
+        if oldest_cookie != None:
+            next_to_expire_ts = datetime.datetime.fromtimestamp(oldest_cookie.timestamp()).strftime('%Y-%m-%d %H:%M:%S')
+            logger.info(f"expired_cookies={expired_cookies} next_to_expire_ts=\"{next_to_expire_ts}\"")
 
     def process_iteration(self):
-        self.check_cookies_expiration()
+        self.check_cookies_expiration(send_alert=False)
         all_results = {"payload": []}
         username = self.getConfig("ICLOUD_USERNAME", section="settings")
         password = self.getConfig("ICLOUD_PASSWORD", section="settings")
@@ -356,6 +372,7 @@ class IcloudLibrary():
             self.scheduler = BackgroundScheduler()
         logger.info(f"Schedule daemon with frequency={self.frequency}")
         self.scheduler.add_job(self.process_iteration, "interval", minutes=self.frequency, next_run_time=datetime.datetime.now())
+        self.scheduler.add_job(self.check_cookies_expiration, "interval", minutes=1440, next_run_time=datetime.datetime.now())
         self.scheduler.start()
         #self.background_daemon()
             
