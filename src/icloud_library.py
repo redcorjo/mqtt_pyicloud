@@ -305,10 +305,11 @@ class IcloudLibrary():
                                 all_working_lines.append(line)
                     if expired_cookies == True:
                         logger.info(f"Updating file {cookie_directory}/{item} with content {all_working_lines}")
-                        with open(f"{cookie_directory}/{item}", "w") as my_file:
-                            for line in all_working_lines:
-                                logger.debug(f"Updating line {line}")
-                                my_file.write(line)
+                        self._clean_cookie_files()
+                        # with open(f"{cookie_directory}/{item}", "w") as my_file:
+                        #     for line in all_working_lines:
+                        #         logger.debug(f"Updating line {line}")
+                        #         my_file.write(line)
         else:
             logger.warning(f"Missing temporal folder {cookie_directory}")
         if oldest_cookie != None:
