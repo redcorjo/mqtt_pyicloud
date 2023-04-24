@@ -275,6 +275,7 @@ class IcloudLibrary():
         if os.path.exists(cookie_directory):
             for item in os.listdir(cookie_directory):
                 if os.path.isfile(f"{cookie_directory}/{item}"):
+                    all_working_lines = []
                     with open(f"{cookie_directory}/{item}") as my_file:
                         for line in my_file:
                             if line.startswith("Set-Cookie") and "expires=" in line:
@@ -296,6 +297,18 @@ class IcloudLibrary():
                                         expired_cookies = True
                                         if send_alert == True:
                                             logger.info(f"Sending alert for line={line}")
+                                    else:
+                                        all_working_lines.append(line)
+                                else:
+                                    all_working_lines.append(line)
+                            else:
+                                all_working_lines.append(line)
+                    if expired_cookies == True:
+                        logger.info(f"Updating file {cookie_directory}/{item} with content {all_working_lines}")
+                        with open(f"{cookie_directory}/{item}", "w") as my_file:
+                            for line in all_working_lines:
+                                logger.debug(f"Updating line {line}")
+                                my_file.write(line)
         else:
             logger.warning(f"Missing temporal folder {cookie_directory}")
         if oldest_cookie != None:
@@ -314,6 +327,7 @@ class IcloudLibrary():
         if not os.path.exists(cookie_directory):
             logger.info(f"Creating cookies directory {cookie_directory}")
             os.makedirs(cookie_directory)
+        self.check_cookies_expiration()
         api = PyiCloudService(username, password, cookie_directory=cookie_directory)
         if api.requires_2fa:
             logger.warning("Required 2Factor auth")
