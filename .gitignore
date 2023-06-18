@@ -4,3 +4,5 @@ tmp/
 src/mqtt_icloud.ini
 *.code-workspace
 src/__pycache__
+.DS_Store
+.gitignore
